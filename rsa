@@ -1,18 +1,49 @@
-#!/usr/bin/python3
-from sys import argv
+#!/usr/bin/env python3
 
-with open(argv[1]) as f:
-    for line in f:
-        num = int(line)
-        print("{:d}=".format(num), end="")
-        if num % 2 == 0:
-            print("{}*2".format(num//2))
-            continue
-        for i in range(3, num, 2):
-            if num % i == 0:
-                factor = num//i
-                for j in range(3, factor, 2):
-                    if factor % j == 0 or i % j == 0:
-                        break
-                print("{}*{}".format(factor, i))
-                break
+import sys
+import random
+
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+def pollards_rho(n):
+    if n == 1:
+        return [1]
+    if n % 2 == 0:
+        return [2, n // 2]
+    
+    x = random.randint(1, n - 1)
+    y = x
+    c = random.randint(1, n - 1)
+    d = 1
+    
+    f = lambda x: (x * x + c) % n
+
+    while d == 1:
+        x = f(x)
+        y = f(f(y))
+        d = gcd(abs(x - y), n)
+    
+    if d == n:
+        return None
+    
+    return [d, n // d]
+
+def factorize(n):
+    factors = pollards_rho(n)
+    if factors:
+        return f"{n}={factors[0]}*{factors[1]}"
+    else:
+        return f"{n} is prime or invalid"
+
+if len(sys.argv) == 2:
+    try:
+        number = int(open(sys.argv[1], "r").read().strip())
+        print(factorize(number))
+    except FileNotFoundError:
+        print("File not found.")
+    except ValueError:
+        print("Invalid number in the file.")
+
