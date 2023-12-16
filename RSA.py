@@ -1,36 +1,47 @@
 #!/usr/bin/env bash
-import math
+check_factor()
+{
+	if [ $# -ne 3 ];
+        then
+                args=("$@")
+                count=0
+                num2=1
+                for a in ${args[*]};
+                do
+                        if [ $count -gt 1 ];
+                        then
+                                num2=$(echo $a*$num2 | bc)
+                        fi
+                        count=$((count + 1))
+                done
+        else
+                num2=$3
+        fi
 
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
+        num1=$2
+        num=$(echo "$1" | tr ':' '=')
 
-def pollards_rho(n):
-    if n == 1:
-        return [n]
-    if n % 2 == 0:
-        return [2, n // 2]
+        result=$(echo "if($num2 > $num1) 1 else 0" | bc)
+	        if ((result == 1)); then
+		        numcp=$num1
+		        num1=$num2
+		        num2=$numcp
+                fi
 
-    x = 2
-    y = 2
-    d = 1
+        echo "$num$num1*$num2"
+}
 
-    f = lambda x: (x ** 2 + 1) % n
+if [ $# -ne 1 ]
+then
+        echo 'Usage: rsa <file>'
+        exit 1
+else
 
-    while d == 1:
-        x = f(x)
-        y = f(f(y))
-        d = gcd(abs(x - y), n)
-    
-    if d == n:
-        return "Failed to factorize, try another method"
-    
-    return [d, n // d]
+        while read i
+        do
 
-# Your number to factorize
-n = 2497885147362973
+                result=$(factor "$i")
+                check_factor $result
 
-factors = pollards_rho(n)
-print(f"{n}={factors[0]}*{factors[1]}")
-
+        done < "$1"
+fi

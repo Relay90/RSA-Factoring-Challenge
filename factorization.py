@@ -1,31 +1,48 @@
 #!/usr/bin/env bash
-import math
 
-def factorize(n):
-    factors = []
-    for i in range(2, int(math.sqrt(n)) + 1):
-        while n % i == 0:
-            factors.append(i)
-            n //= i
-    if n > 1:
-        factors.append(n)
-    return factors
+check_factor()
+{
+	if [ $# -ne 3 ];
+        then
+                args=("$@")
+                count=0
+                num2=1
+                for a in ${args[*]};
+                do
+                        if [ $count -gt 1 ];
+                        then
+                                num2=$(echo $a*$num2 | bc)
+                        fi
+                        count=$((count + 1))
+                done
+        else
+                num2=$3
+        fi
 
-def factorize_file(file_path):
-    with open(file_path, 'r') as file:
-        numbers = file.read().splitlines()
+        num1=$2
+        num=$(echo "$1" | tr ':' '=')
 
-    for num in numbers:
-        num = int(num)
-        factors = factorize(num)
-        # Assuming two factors for each number
-        if len(factors) >= 2:
-            print(f"{num}={factors[0]}*{factors[1]}")
+        result=$(echo "if($num2 > $num1) 1 else 0" | bc)
+	        if ((result == 1)); then
+		        numcp=$num1
+		        num1=$num2
+		        num2=$numcp
+                fi
 
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 2:
-        print("Usage: python factors.py <file>")
-    else:
-        file_path = sys.argv[1]
-        factorize_file(file_path)
+        echo "$num$num1*$num2"
+}
+
+if [ $# -ne 1 ]
+then
+        echo 'Usage: factors <file>'
+        exit 1
+else
+
+        while read i
+        do
+
+                result=$(factor "$i")
+                check_factor $result
+
+        done < "$1"
+fi
